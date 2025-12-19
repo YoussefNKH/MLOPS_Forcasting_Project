@@ -1,0 +1,4 @@
+[core]
+    remote = myserver
+['remote "myserver"']
+    url = ssh://mlops@20.199.136.148:/home/mlops/dvc-storage
