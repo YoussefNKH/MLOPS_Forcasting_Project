@@ -29,7 +29,7 @@ services:
     networks:
       - mlflow-net
     ports:
-      - "${MLFLOW_PORT:-5000}:${MLFLOW_PORT:-5000}"
+      - "${MLFLOW_PORT:-5001}:${MLFLOW_PORT:-5001}"
     env_file:
       - ../.env
     environment:
@@ -42,11 +42,11 @@ services:
       --backend-store-uri postgresql://$${POSTGRES_USER}:$${POSTGRES_PASSWORD}@postgres:5432/$${POSTGRES_DB}
       --artifacts-destination /mlflow/artifacts
       --host 0.0.0.0
-      --port $${MLFLOW_PORT:-5000}
+      --port $${MLFLOW_PORT:-5001}
       --serve-artifacts
       --allowed-hosts '*'"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:${MLFLOW_PORT:-5000}/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:${MLFLOW_PORT:-5001}/health"]
       interval: 10s
       timeout: 5s
       retries: 5
