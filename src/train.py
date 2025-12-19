@@ -82,4 +82,4 @@ X_valid_scaled = scaler.transform(X_valid)
 
 svm_model = SVR(kernel='rbf', C=1.0, gamma='scale')
 svm_model.fit(X_train_scaled, y_train)
-pkl.dump((svm_model, scaler), open('models/svm.pkl', 'wb'))  # Save scaler too!
+pkl.dump((svm_model, scaler), open('models/svm.pkl', 'wb')) 
