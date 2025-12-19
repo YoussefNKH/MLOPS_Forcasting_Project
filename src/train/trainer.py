@@ -1,7 +1,7 @@
-from lgbm import train_lgbm
-from catboost import train_catboost
-from xgboost import train_xgboost
-from SVM import train_svm
+from .lgbm import train_lgbm
+from .catboost import train_catboost
+from .xgboost import train_xgboost
+
 
 
 def train(model_name, X_train, y_train, X_valid, y_valid, common_params=None):
