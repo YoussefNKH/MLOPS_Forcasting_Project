@@ -1,3 +1,4 @@
+version: "3.8"
 services:
   postgres:
     image: postgres:14
@@ -7,11 +8,10 @@ services:
     ports:
       - "5432:5432"
     env_file:
-      - ../.env
+      - .env
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      # Use the environment variable inside the container
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER}"]
       interval: 5s
       timeout: 5s
@@ -19,8 +19,8 @@ services:
 
   mlflow:
     build:
-      context: ../
-      dockerfile: docker/Dockerfile.mlflow
+      context: .
+      dockerfile: Dockerfile.mlflow
     container_name: mlflow-server
     depends_on:
       postgres:
@@ -30,12 +30,11 @@ services:
     ports:
       - "${MLFLOW_PORT:-5000}:${MLFLOW_PORT:-5000}"
     env_file:
-      - ../.env
+      - .env
     environment:
       - GUNICORN_CMD_ARGS=--timeout 60
     volumes:
       - mlflow_artifacts:/mlflow/artifacts
-    # We use sh -c to expand variables at runtime inside the container
     entrypoint: ["/bin/sh", "-c"]
     command: >
       "mlflow server
