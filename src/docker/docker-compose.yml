@@ -1,4 +1,5 @@
 version: "3.8"
+
 services:
   postgres:
     image: postgres:14
@@ -8,7 +9,7 @@ services:
     ports:
       - "5432:5432"
     env_file:
-      - ../.env
+      - ../.env   # chemin relatif vers .env dans src/
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -19,8 +20,8 @@ services:
 
   mlflow:
     build:
-      context: .
-      dockerfile: Dockerfile.mlflow
+      context: ../
+      dockerfile: docker/Dockerfile.mlflow
     container_name: mlflow-server
     depends_on:
       postgres:
@@ -30,7 +31,7 @@ services:
     ports:
       - "${MLFLOW_PORT:-5000}:${MLFLOW_PORT:-5000}"
     env_file:
-      - .env
+      - ../.env
     environment:
       - GUNICORN_CMD_ARGS=--timeout 60
     volumes:
