@@ -1,0 +1,5 @@
+outs:
+- md5: a74918e492ee898170668de10773d715
+  size: 375213931
+  hash: md5
+  path: CA_1_0.pkl

@@ -2,8 +2,6 @@ __pycache__/
 *.pyc
 .env
 models/*.pkl
-data/
 .dvc/cache/
 mlruns/
 catboost_info/
-/data
