@@ -6,14 +6,13 @@ services:
       - mlflow-net
     ports:
       - "5432:5432"
-    environment:
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
+    env_file:
+      - ../.env
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      # Use the environment variable inside the container
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -30,22 +29,22 @@ services:
       - mlflow-net
     ports:
       - "${MLFLOW_PORT:-5000}:${MLFLOW_PORT:-5000}"
+    env_file:
+      - ../.env
     environment:
       - GUNICORN_CMD_ARGS=--timeout 60
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
-      - MLFLOW_PORT=${MLFLOW_PORT:-5000}
     volumes:
       - mlflow_artifacts:/mlflow/artifacts
+    # We use sh -c to expand variables at runtime inside the container
+    entrypoint: ["/bin/sh", "-c"]
     command: >
-      server
-      --backend-store-uri postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      "mlflow server
+      --backend-store-uri postgresql://$${POSTGRES_USER}:$${POSTGRES_PASSWORD}@postgres:5432/$${POSTGRES_DB}
       --artifacts-destination /mlflow/artifacts
       --host 0.0.0.0
-      --port ${MLFLOW_PORT:-5000}
+      --port $${MLFLOW_PORT:-5000}
       --serve-artifacts
-      --allowed-hosts "*"
+      --allowed-hosts '*'"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:${MLFLOW_PORT:-5000}/health"]
       interval: 10s
