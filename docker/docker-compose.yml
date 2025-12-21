@@ -52,6 +52,23 @@ services:
       retries: 5
       start_period: 30s
 
+  ml_core:
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile.ml_core
+    container_name: ml_core
+    volumes:
+      - ../data:/app/data
+    networks:
+      - mlflow-net
+    env_file:
+      - ../.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mlflow:
+        condition: service_started
+
 networks:
   mlflow-net:
     driver: bridge

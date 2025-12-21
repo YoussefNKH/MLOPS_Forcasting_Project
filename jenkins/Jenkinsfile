@@ -1,33 +1,185 @@
 pipeline {
     agent any
     
+    environment {
+        // Docker registry (change if using private registry)
+        DOCKER_REGISTRY = ''
+        BACKEND_IMAGE = 'mlops-backend'
+        FRONTEND_IMAGE = 'mlops-frontend'
+        
+        // DVC remote credentials - use Jenkins credentials
+        DVC_REMOTE_NAME = 'vmremote'
+    }
+    
+    triggers {
+        // Trigger on Git push (including .dvc file changes)
+        pollSCM('H/5 * * * *')  // Poll every 5 minutes, or use webhook
+    }
+    
     stages {
         stage('Checkout') {
             steps {
-                echo 'Checking out code...'
+                echo 'Checking out code from repository...'
                 checkout scm
-            }
-        }
-        
-        stage('Build') {
-            steps {
-                echo 'Building application...'
-                // Add your build commands here
-                // Example: sh 'npm install' or sh 'mvn clean package'
-            }
-        }
-        
-        stage('Test') {
-            steps {
-                echo 'Running tests...'
                 
+                // Display git information
+                sh '''
+                    echo "Current branch: $(git branch --show-current)"
+                    echo "Latest commit: $(git log -1 --oneline)"
+                '''
             }
         }
         
-        stage('Deploy') {
+        stage('Check DVC Changes') {
             steps {
-                echo 'Deploying application...'
-                // Add your deployment commands here
+                echo 'Checking for DVC file changes...'
+                script {
+                    // Check if .dvc files changed in the last commit
+                    def dvcChanged = sh(
+                        script: 'git diff --name-only HEAD~1 HEAD | grep -E "\\.dvc$" || echo "no_change"',
+                        returnStdout: true
+                    ).trim()
+                    
+                    if (dvcChanged != 'no_change') {
+                        echo "DVC files changed: ${dvcChanged}"
+                        env.DVC_CHANGED = 'true'
+                    } else {
+                        echo 'No DVC file changes detected'
+                        env.DVC_CHANGED = 'false'
+                    }
+                }
+            }
+        }
+        
+        stage('DVC Pull') {
+            when {
+                expression { env.DVC_CHANGED == 'true' }
+            }
+            steps {
+                echo 'Pulling latest data from DVC remote...'
+                
+                // Jenkins runs on the VM with local DVC storage access
+                sh '''
+                    # Pull data from DVC remote (local storage on VM)
+                    dvc pull -v
+                    
+                    # List pulled data files
+                    echo "Data files in data directory:"
+                    ls -lh data/
+                '''
+            }
+        }
+        
+        stage('Build Backend') {
+            steps {
+                echo 'Building backend Docker image...'
+                dir('backend') {
+                    script {
+                        sh """
+                            docker build -t ${BACKEND_IMAGE}:${BUILD_NUMBER} .
+                            docker tag ${BACKEND_IMAGE}:${BUILD_NUMBER} ${BACKEND_IMAGE}:latest
+                        """
+                    }
+                }
+            }
+        }
+        
+        stage('Build Frontend') {
+            steps {
+                echo 'Building frontend Docker image...'
+                dir('frontend') {
+                    script {
+                        sh """
+                            docker build -f Dockerfile.streamlit -t ${FRONTEND_IMAGE}:${BUILD_NUMBER} .
+                            docker tag ${FRONTEND_IMAGE}:${BUILD_NUMBER} ${FRONTEND_IMAGE}:latest
+                        """
+                    }
+                }
+            }
+        }
+        
+        stage('Stop Existing Services') {
+            steps {
+                echo 'Stopping any existing Docker Compose services...'
+                dir('docker') {
+                    sh '''
+                        docker compose down || true
+                    '''
+                }
+            }
+        }
+        
+        stage('Deploy Services') {
+            steps {
+                echo 'Deploying MLflow, Postgres, and ML Core services...'
+                dir('docker') {
+                    sh '''
+                        # Start services with docker-compose
+                        docker compose up -d
+                        
+                        # Wait for services to be ready
+                        echo "Waiting for services to start..."
+                        sleep 10
+                    '''
+                }
+            }
+        }
+        
+        stage('Health Checks') {
+            steps {
+                echo 'Performing health checks on deployed services...'
+                script {
+                    // Check Postgres
+                    sh '''
+                        echo "Checking Postgres..."
+                        docker compose -f docker/docker-compose.yml exec -T postgres pg_isready -U $POSTGRES_USER || echo "Postgres not ready yet"
+                    '''
+                    
+                    // Check MLflow
+                    sh '''
+                        echo "Checking MLflow..."
+                        max_attempts=30
+                        attempt=1
+                        
+                        while [ $attempt -le $max_attempts ]; do
+                            if curl -f http://localhost:5001/health 2>/dev/null; then
+                                echo "MLflow is healthy!"
+                                break
+                            fi
+                            echo "Attempt $attempt/$max_attempts: MLflow not ready yet..."
+                            sleep 10
+                            attempt=$((attempt + 1))
+                        done
+                        
+                        if [ $attempt -gt $max_attempts ]; then
+                            echo "MLflow health check failed after $max_attempts attempts"
+                            exit 1
+                        fi
+                    '''
+                    
+                    // List running containers
+                    sh '''
+                        echo "Running containers:"
+                        docker ps --filter "name=mlflow" --filter "name=postgres" --filter "name=ml_core"
+                    '''
+                }
+            }
+        }
+        
+        stage('Display Service URLs') {
+            steps {
+                echo 'Services deployed successfully!'
+                script {
+                    sh '''
+                        echo "========================================="
+                        echo "Service URLs:"
+                        echo "MLflow UI: http://localhost:5001"
+                        echo "Postgres: localhost:5432"
+                        echo "Backend API: http://localhost:8000 (if deployed)"
+                        echo "Frontend: http://localhost:8501 (if deployed)"
+                        echo "========================================="
+                    '''
+                }
             }
         }
     }
@@ -35,9 +187,28 @@ pipeline {
     post {
         success {
             echo 'Pipeline completed successfully!'
+            echo 'All services are running and healthy.'
         }
         failure {
             echo 'Pipeline failed!'
+            echo 'Checking container logs...'
+            sh '''
+                echo "MLflow logs:"
+                docker logs mlflow-server || true
+                
+                echo "Postgres logs:"
+                docker logs mlflow-postgres || true
+                
+                echo "ML Core logs:"
+                docker logs ml_core || true
+            '''
+        }
+        cleanup {
+            echo 'Cleaning up build artifacts...'
+            // Optionally clean up old images
+            sh '''
+                docker image prune -f --filter "dangling=true" || true
+            '''
         }
     }
 }

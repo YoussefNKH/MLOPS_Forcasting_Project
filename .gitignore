@@ -1,6 +1,14 @@
 .venv
-data/ 
+
 models/
 __pycache__
 results/
 catboost_info/
+.env
+data/CA_1_1.pkl
+data/CA_1_2.pkl
+data/CA_1_3.pkl
+data/CA_1_4.pkl
+data/CA_1_5.pkl
+data/CA_1_6.pkl
+data/CA_1_7.pkl

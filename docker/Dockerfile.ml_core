@@ -9,9 +9,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy source code
 COPY src/ src/
-# Copy data (optional, better to mount volume in production/dev)
-COPY data/ data/ 
-
 # Set python path so imports like 'from src...' work
 ENV PYTHONPATH=/app
 

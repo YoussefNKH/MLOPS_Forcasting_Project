@@ -1,23 +1,27 @@
 import os
-from src.utils import load_data
+from src.utils import load_data , get_latest_data_file
 from src.preprocessing import split_train_test, prepare_features
 from src.train.trainer import train
 from src.evaluate import evaluate_model
-from dotenv import load_dotenv
-from src.config.config import common_params
+from src.config.config import common_params , MLFLOW_TRACKING_URI_PORT , MLFLOW_EXPERIMENT_NAME
 import json
 from datetime import datetime
 import mlflow
 import mlflow.sklearn
 
-load_dotenv()
 
 def main():
-    mlflow.set_tracking_uri("http://20.199.136.148:5001")
-    mlflow.set_experiment(os.getenv("MLFLOW_EXPERIMENT_NAME"))
-    
-    df = load_data("data/CA_1_0.pkl")
-    df_train, df_valid = split_train_valid(df)
+    mlflow.set_tracking_uri(MLFLOW_TRACKING_URI_PORT)
+    mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
+    try:
+        data_path = get_latest_data_file(data_dir="data")
+        print(f"--- Processing latest data file: {data_path} ---")
+        df = load_data(data_path)
+    except Exception as e:
+        print(f"Error loading data: {e}")
+        return 
+   # df = load_data("data/CA_1_0.pkl")
+    df_train, df_valid = split_train_test(df)
     X_train, X_valid, y_train, y_valid = prepare_features(df_train, df_valid)
     
     # Track best model
