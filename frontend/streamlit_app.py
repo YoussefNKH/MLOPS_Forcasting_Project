@@ -73,7 +73,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # API Configuration
-API_BASE_URL = "http://localhost:8000/api"
+API_BASE_URL = "http://backend-api:8000/api"
 
 # Helper Functions
 def check_api_health():
