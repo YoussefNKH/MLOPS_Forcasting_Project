@@ -52,20 +52,11 @@ pipeline {
         }
         
         stage('DVC Pull') {
-            when {
-                expression { env.DVC_CHANGED == 'true' }
-            }
             steps {
                 echo 'Pulling latest data from DVC remote...'
-                
-                // Jenkins runs on the VM with local DVC storage access
                 sh '''
-                    # Pull data from DVC remote (local storage on VM)
                     dvc pull -v
-                    
-                    # List pulled data files
-                    echo "Data files in data directory:"
-                    ls -lh data/
+                    ls -lh data/ || echo "Data directory empty or missing"
                 '''
             }
         }
