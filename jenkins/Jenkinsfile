@@ -81,8 +81,11 @@ pipeline {
                     # Install test dependencies if not already installed
                     pip install pytest httpx --break-system-packages || pip install pytest httpx
                     
+                    # Add local bin to PATH
+                    export PATH=$PATH:/var/lib/jenkins/.local/bin
+                    
                     # Run tests with verbose output
-                    pytest tests/ -v --tb=short --junit-xml=test-results.xml || {
+                    /var/lib/jenkins/.local/bin/pytest tests/ -v --tb=short --junit-xml=test-results.xml || {
                         echo "Tests failed! Check the output above."
                         exit 1
                     }
