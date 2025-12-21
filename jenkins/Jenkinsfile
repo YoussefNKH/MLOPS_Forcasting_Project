@@ -55,6 +55,12 @@ pipeline {
             steps {
                 echo 'Pulling latest data from DVC remote...'
                 sh '''
+                    # Install DVC if not found
+                    if ! command -v dvc &> /dev/null; then
+                        echo "DVC not found, installing..."
+                        pip install dvc dvc-ssh --break-system-packages || pip install dvc dvc-ssh
+                    fi
+                    
                     dvc pull -v
                     ls -lh data/ || echo "Data directory empty or missing"
                 '''
