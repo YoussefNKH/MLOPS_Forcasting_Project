@@ -64,6 +64,10 @@ pipeline {
                     # Add local bin to PATH for the session
                     export PATH=$PATH:/var/lib/jenkins/.local/bin
                     
+                    # Configure DVC to use local path instead of SSH (avoids password prompt)
+                    # We use --local so it doesn't affect the tracked .dvc/config
+                    dvc remote modify --local vmremote url /home/mlops/dvc-storage
+                    
                     dvc pull -v
                     ls -lh data/ || echo "Data directory empty or missing"
                 '''
