@@ -79,8 +79,8 @@ pipeline {
                 echo 'Running unit tests with pytest...'
                 sh '''
                     # Install test dependencies and project dependencies
-                    pip install pytest httpx pandas numpy scikit-learn fastapi streamlit --break-system-packages || \
-                    pip install pytest httpx pandas numpy scikit-learn fastapi streamlit
+                    pip install pytest httpx pandas numpy scikit-learn fastapi streamlit plotly --break-system-packages || \
+                    pip install pytest httpx pandas numpy scikit-learn fastapi streamlit plotly
                     
                     # Add local bin to PATH
                     export PATH=$PATH:/var/lib/jenkins/.local/bin
