@@ -1,4 +1,5 @@
 from dotenv import load_dotenv
+import os
 load_dotenv()
 common_params = {
         "learning_rate": 0.05,

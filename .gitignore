@@ -1,6 +1,7 @@
 .venv
 
-models/
+# models/ - Commented out to allow backend code. Use specific ignores for model artifacts.
+
 __pycache__
 results/
 catboost_info/

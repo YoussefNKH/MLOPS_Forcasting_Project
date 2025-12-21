@@ -1,0 +1,51 @@
+from pydantic import BaseModel
+from typing import Optional, List
+
+class Config:
+        json_schema_extra = {
+            "example": {
+                "id": 1,
+                "item_id": 1001,
+                "dept_id": 1,
+                "cat_id": 1,
+                "store_id": 1,
+                "state_id": 1,
+                "d": 1000,
+                "wm_yr_wk": 11500,
+                "weekday": 1,
+                "wday": 2,
+                "month": 6,
+                "year": 2016,
+                "event_name_1": 0,
+                "event_type_1": 0,
+                "event_name_2": 0,
+                "event_type_2": 0,
+                "snap_CA": 0,
+                "snap_TX": 0,
+                "snap_WI": 0,
+                "sell_price": 3.97,
+                "revenue": 11.91,
+                "sold_lag_1": 3.0,
+                "sold_lag_2": 2.0,
+                "sold_lag_3": 1.0,
+                "sold_lag_6": 4.0,
+                "sold_lag_12": 2.5,
+                "sold_lag_24": 3.0,
+                "sold_lag_36": 2.8,
+                "iteam_sold_avg": 2.5,
+                "state_sold_avg": 150.0,
+                "store_sold_avg": 50.0,
+                "cat_sold_avg": 75.0,
+                "dept_sold_avg": 30.0,
+                "cat_dept_sold_avg": 25.0,
+                "store_item_sold_avg": 2.3,
+                "cat_item_sold_avg": 2.4,
+                "dept_item_sold_avg": 2.6,
+                "state_store_sold_avg": 45.0,
+                "state_store_cat_sold_avg": 22.0,
+                "store_cat_dept_sold_avg": 18.0,
+                "rolling_sold_mean": 2.7,
+                "expanding_sold_mean": 2.5,
+                "selling_trend": 0.05
+            }
+        }
