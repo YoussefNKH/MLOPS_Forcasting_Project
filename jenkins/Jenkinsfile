@@ -74,6 +74,30 @@ pipeline {
             }
         }
         
+        stage('Run Unit Tests') {
+            steps {
+                echo 'Running unit tests with pytest...'
+                sh '''
+                    # Install test dependencies if not already installed
+                    pip install pytest httpx --break-system-packages || pip install pytest httpx
+                    
+                    # Run tests with verbose output
+                    pytest tests/ -v --tb=short --junit-xml=test-results.xml || {
+                        echo "Tests failed! Check the output above."
+                        exit 1
+                    }
+                    
+                    echo "All tests passed successfully!"
+                '''
+            }
+            post {
+                always {
+                    // Archive test results
+                    junit 'test-results.xml'
+                }
+            }
+        }
+        
         stage('Build Backend') {
             steps {
                 echo 'Building backend Docker image...'
