@@ -61,6 +61,9 @@ pipeline {
                         pip install dvc dvc-ssh --break-system-packages || pip install dvc dvc-ssh
                     fi
                     
+                    # Add local bin to PATH for the session
+                    export PATH=$PATH:/var/lib/jenkins/.local/bin
+                    
                     dvc pull -v
                     ls -lh data/ || echo "Data directory empty or missing"
                 '''
