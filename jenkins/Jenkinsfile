@@ -114,8 +114,8 @@ pipeline {
                 echo 'Deploying MLflow, Postgres, and ML Core services...'
                 dir('docker') {
                     sh '''
-                        # Start services with docker-compose
-                        docker compose up -d
+                        # Start services with docker-compose, force rebuild to use latest code
+                        docker compose up -d --build --force-recreate
                         
                         # Wait for services to be ready
                         echo "Waiting for services to start..."
